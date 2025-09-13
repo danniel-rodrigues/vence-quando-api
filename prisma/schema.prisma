@@ -14,12 +14,27 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model User {
+  id          Int         @id @default(autoincrement())
+  email       String      @unique
+  password    String
+  products    Product[] // Campo de relação: Diz que um usuário pode ter uma lista de produtos.
+  createdAt   DateTime    @default(now())   @map("created_at")
+
+  @@map("users")
+}
+
 model Product {
   id              Int       @id @default(autoincrement())
   productName     String                          @map("product_name")
   expirationDate  DateTime  @db.Date              @map("expiration_date")
   createdAt       DateTime  @default(now())       @map("created_at")
   updatedAt       DateTime  @updatedAt            @map("updated_at")
+  // Campo de guarda o ID do usuário dono do produto.
+  userId          Int                             @map("user_id")
+  // Campo virtual que cria a relação com o modelo User.
+  // Usa o campo 'userId' para se conectar com o campo 'id' do User.
+  user            User      @relation(fields: [userId], references: [id])
 
   @@map("products")
 }
