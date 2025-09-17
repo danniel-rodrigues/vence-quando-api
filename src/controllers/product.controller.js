@@ -7,7 +7,6 @@
 // 4. Enviar a resposta (response) para o cliente com o status HTTP correto.
 
 // Importamos o serviço de produtos, que terá a lógica de negócio e o acesso ao banco.
-// AINDA NÃO CRIAMOS ESSE ARQUIVO, mas já vamos deixar a importação pronta.
 import * as productService from "../services/product.service.js";
 
 /**
@@ -20,10 +19,15 @@ export const createProduct = async (req, res) => {
   try {
     // Obter os dados do body da requisição.
     const { productName, expirationDate } = req.body;
+    const userId = req.user.id;
 
     // Chama o serviço responsável por criar o produto no banco de dados.
     // Usa-se "await" porque a operação com o banco de dados é assíncrona.
-    const newProduct = await productService.create(productName, expirationDate);
+    const newProduct = await productService.create(
+      productName,
+      expirationDate,
+      userId
+    );
 
     // Enviar a resposta para o cliente.
     // O status 201 significa "Created" (Criado), que é o padrão para POST bem-sucedido.
@@ -42,10 +46,12 @@ export const createProduct = async (req, res) => {
  * Função para BUSCAR TODOS os produtos.
  * Será chamada pela rota GET /products
  */
-export const getAllProducts = async (_, res) => {
+export const getAllProducts = async (req, res) => {
   try {
+    const userId = req.user.id;
+
     // Chamar o serviço que busca todos os produtos.
-    const products = await productService.findAll();
+    const products = await productService.findAll(userId);
 
     // Enviar a lista de produtos com o status "200 OK".
     res.status(200).json(products);
@@ -63,10 +69,8 @@ export const getAllProducts = async (_, res) => {
 export const getProductById = async (req, res) => {
   try {
     // Obter o ID dos parâmetros da URL (ex.: /products/123 -> id = 123).
-    const { id } = req.params;
-
-    // Converter o ID para um número inteiro.
-    const productId = parseInt(id, 10);
+    const productId = parseInt(req.params.id, 10);
+    const userId = parseInt(req.user.id, 10);
 
     // Verifica se a conversão resultou em um número válido.
     if (isNaN(productId)) {
@@ -76,7 +80,7 @@ export const getProductById = async (req, res) => {
     }
 
     // Chamar o serviço que busca o produto específico.
-    const product = await productService.findById(productId);
+    const product = await productService.findById(productId, userId);
 
     // Verificação: Se o serviço não encontrar o produto, ele deve retornar null ou undefined.
     if (!product) {
@@ -99,11 +103,9 @@ export const getProductById = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     // Obter o ID dos parâmetros e os novos dados do body da requisição.
-    const { id } = req.params;
+    const productId = parseInt(req.params.id, 10);
+    const userId = parseInt(req.user.id, 10);
     const dataToUpdate = req.body;
-
-    // Converter o ID para um número inteiro.
-    const productId = parseInt(id, 10);
 
     // Verifica se a conversão resultou em um número válido.
     if (isNaN(productId)) {
@@ -113,11 +115,15 @@ export const updateProduct = async (req, res) => {
     }
 
     // Chamar o serviço de atualização.
-    const updatedProduct = await productService.update(productId, dataToUpdate);
+    const updatedProduct = await productService.update(
+      productId,
+      dataToUpdate,
+      userId
+    );
 
     // Verificação: Caso o ID não exista para ser atualizado.
-    if (!updateProduct) {
-      res
+    if (!updatedProduct) {
+      return res
         .status(404)
         .json({ message: "Produto não encontrado para atualização." });
     }
@@ -138,10 +144,8 @@ export const updateProduct = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     // Obter o ID do produto pelos parâmetros.
-    const { id } = req.params;
-
-    // Converter o ID para um número inteiro.
-    const productId = parseInt(id, 10);
+    const productId = parseInt(req.params.id, 10);
+    const userId = parseInt(req.user.id, 10);
 
     // Verifica se a conversão resultou em um número válido.
     if (isNaN(productId)) {
@@ -151,7 +155,7 @@ export const deleteProduct = async (req, res) => {
     }
 
     // Chamar o serviço que remove o produto.
-    const success = await productService.remove(productId);
+    const success = await productService.remove(productId, userId);
 
     // Verificação: Se o serviço retornar false, significa que não encontrou o produto.
     if (!success) {

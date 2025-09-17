@@ -6,7 +6,6 @@
 // ou "o nome do produto deve ter no mínimo 3 caracteres" FICAM AQUI.
 
 // Importamos o nosso Model de produto, que será a ponte com o banco de dados.
-// AINDA NÃO CRIAMOS ESSE ARQUIVO, mas já deixamos a importação pronta.
 import Product from "../models/product.model.js";
 
 /**
@@ -14,9 +13,10 @@ import Product from "../models/product.model.js";
  * Contém a lógica de validação antes de salvar no banco de dados.
  * @param {string} productName O nome do produto.
  * @param {string} expirationDate A data de validade do produto.
+ * @param {number} userId O ID do usuário ao qual o produto pertence.
  * @returns {Promise<object>} O novo produto criado.
  */
-export const create = async (productName, expirationDate) => {
+export const create = async (productName, expirationDate, userId) => {
   // Validações
 
   // Garantir que todos os dados necessários foram enviados.
@@ -32,62 +32,68 @@ export const create = async (productName, expirationDate) => {
 
   // Garantir que a data de validade NÃO esteja no passado ou
   // que NÃO seja a data atual (hoje).
-  const currenteDate = new Date();
-  currenteDate.setHours(0, 0, 0, 0);
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
 
   const parts = expirationDate.split("-");
   const expirationDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
 
   // Verificar se a data é válida.
-  if (expirationDateObj.getTime()) {
+  if (isNaN(expirationDateObj.getTime())) {
     throw new Error("Formato de data de validade inválido.");
   }
 
-  if (expirationDateObj < currenteDate) {
+  if (expirationDateObj < currentDate) {
     throw new Error("A data de validade não pode ser uma data passada.");
   }
 
-  // Se todas as validações passaram, chamamos o Model para salvar no banco.
-  // O Service não sabe COMO o model salva, ele apenas confia que será salvo.
-  const newProduct = await Product.create({
+  const productData = {
     productName,
     expirationDate: expirationDateObj,
-  });
+    userId,
+  };
+
+  // Se todas as validações passaram, chamamos o Model para salvar no banco.
+  // O Service não sabe COMO o model salva, ele apenas confia que será salvo.
+  const newProduct = await Product.create(productData);
 
   // Retorna o produto recém-criado para o controller.
   return newProduct;
 };
 
 /**
- * Serviço par BUSCAR TODOS os produtos.
+ * Serviço par BUSCAR TODOS os produtos de um usuário logado.
+ * @param {number} userId O ID do usuário ao qual o produto pertence.
  * @returns {Promise<Array} Uma lista de todos os produtos.
  */
-export const findAll = async () => {
-  const products = await Product.findAll();
+export const findAll = async (userId) => {
+  const products = await Product.findAll(userId);
   return products;
 };
 
 /**
- * Serviço para BUSCAR UM produto pelo seu ID.
- * @param {string} id O ID do produto a ser buscado.
+ * Serviço para BUSCAR UM produto (de um usuário logado) pelo seu ID.
+ * @param {number} id O ID do produto a ser buscado.
+ * @param {number} userId O ID do usuário ao qual o produto pertence.
  * @returns {Promise<object|null>} O objeto do produto ou null se não for encontrado.
  */
-export const findById = async (id) => {
+export const findById = async (id, userId) => {
   // Repasamos a chamada para o Model. O Model é quem sabe como buscar pelo ID.
-  const product = await Product.findById(id);
+  const product = await Product.findById(id, userId);
   // Se o Model não encontrar, retorna null, e passamos isso para o controller.
   return product;
 };
 
 /**
- * Serviço para ATUALIZAR um produto pelo seu ID.
- * @param {string} id O ID do produto a ser atualizado.
+ * Serviço para ATUALIZAR um produto (de um usuário logado) pelo seu ID.
+ * @param {number} id O ID do produto a ser atualizado.
+ * @param {number} userId O ID do usuário ao qual o produto pertence.
  * @param {object} dataToUpdate Um objeto com os novos dados do produto.
  * @returns {Promise<object|null>} O produto atualizado ou null se não encontrado.
  */
-export const update = async (id, dataToUpdate) => {
+export const update = async (id, dataToUpdate, userId) => {
   // Antes de tentar atualizar, verificar se o produto existe.
-  const productExists = await Product.findById(id);
+  const productExists = await Product.findById(id, userId);
   if (!productExists) {
     // Se não existir, retorna null para o controller saber que não foi encontrado.
     return null;
@@ -130,25 +136,33 @@ export const update = async (id, dataToUpdate) => {
   }
 
   // Se todas as validações aplicáveis passarem, chama o Model para aplicar a atualização.
-  const updatedProduct = await Product.update(id, dataToUpdate);
-  return updatedProduct;
+  const result = await Product.update(id, dataToUpdate, userId);
+
+  // Se a contagem de atualizações for maior que 0, significa que funcionou.
+  if (result.count > 0) {
+    // Retornamos o produto com os dados atualizados para o controller.
+    return Product.findById(id, userId);
+  }
+
+  return null;
 };
 
 /**
- * Serviço para DELETAR um produto pelo seu ID.
- * @param {string} id O ID do produto a ser removido.
+ * Serviço para DELETAR um produto (de um usuário logado) pelo seu ID.
+ * @param {number} id O ID do produto a ser removido.
+ * @param {number} userId O ID do usuário ao qual o produto pertence.
  * @returns {Promise<boolean>} True se foi deletado, false se não foi encontrado.
  */
-export const remove = async (id) => {
+export const remove = async (id, userId) => {
   // Verificar se o produto existe antes de tentar deletar.
-  const productExists = Product.findById(id);
+  const productExists = await Product.findById(id, userId);
   if (!productExists) {
     // Retorna false para o controller saber que não foi encontrado.
     return false;
   }
 
   // Se existe, chama o Model para fazer a remoção do banco de dados.
-  await Product.remove(id);
+  await Product.remove(id, userId);
 
   // Retorna true para informar que houve sucesso.
   return true;

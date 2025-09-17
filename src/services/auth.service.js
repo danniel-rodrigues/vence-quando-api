@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 
 /**
@@ -28,4 +29,39 @@ export const register = async (email, password) => {
   delete newUser.password;
 
   return newUser;
+};
+
+/**
+ * Serviço para autenticar um usuário (login).
+ * @param {string} email O email do usuário.
+ * @param {string} password A senha do usuário.
+ * @returns {Promise<string>} O token JWT de acesso.
+ */
+export const login = async (email, password) => {
+  // Encontrar usuário pelo email.
+  const user = await User.findByEmail(email);
+  if (!user) {
+    throw new Error("Credenciais inválidas!");
+  }
+
+  // Comparar a senha enviada com a senha hasheada no banco de dados.
+  const isPasswordMatch = await bcrypt.compare(password, user.password);
+  if (!isPasswordMatch) {
+    throw new Error("Credenciais inválidas!");
+  }
+
+  // Se as credenciais estiverem corretas, gerar o token JWT
+  // O "payload" do token é a informação que queremos guardar dentro dele.
+  // Guardar o id do usuário é o mais comum e útil.
+  const payload = {
+    id: user.id,
+    email: user.email,
+  };
+
+  // Assinar o token com a chave secreta do .env
+  const token = jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+
+  return token;
 };

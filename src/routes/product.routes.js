@@ -5,8 +5,16 @@ import { Router } from "express";
 // Boa prática - importar todas as funções de uma vez
 import * as productController from "../controllers/product.controller.js";
 
+// Importando middleware de proteção
+import { protectRoute } from "../middlewares/auth.middleware.js";
+
 // Inicializar o Router
 const router = Router();
+
+// Usando middleware em TODAS as rotas abaixo. Agora, toda requisição
+// para /products (qualquer que seja o método) passará primeiro pelo
+// "protectRouter" antes de chegar ao controller.
+router.use(protectRoute);
 
 // Definição das rotas para o CRUD de produtos
 
