@@ -24,6 +24,16 @@ const User = {
       where: { email: email },
     });
   },
+
+  /**
+   * Deleta um usuário pelo seu ID.
+   * @param {number} id O ID do usuário a ser deletado.
+   */
+  deleteById: async (id) => {
+    return prisma.user.delete({
+      where: { id: id },
+    });
+  },
 };
 
 export default User;

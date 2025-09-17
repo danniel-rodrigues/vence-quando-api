@@ -186,3 +186,15 @@ export const resetPassword = async (token, newPassword) => {
   // Não é necessário retornar nada, o sucesso da operação é suficiente.
   return;
 };
+
+/**
+ * Serviço para deletar a conta de um usuário.
+ * @param {number} userId ID do usuário a ser deletado.
+ */
+export const deleteAccount = async (userId) => {
+  // O prisma se encarregará de deletar os produtos em cascata
+  // antes de deletar o usuário, graças ao 'onDelete: Cascade'.
+  await User.deleteById(userId);
+
+  return;
+};

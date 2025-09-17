@@ -36,7 +36,7 @@ model Product {
   userId          Int                             @map("user_id")
   // Campo virtual que cria a relação com o modelo User.
   // Usa o campo 'userId' para se conectar com o campo 'id' do User.
-  user            User      @relation(fields: [userId], references: [id])
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("products")
 }

@@ -80,3 +80,19 @@ export const resetPasswordUser = async (req, res) => {
       .json({ message: "Erro ao redefinir a senha.", error: error.message });
   }
 };
+
+export const deleteUserAccount = async (req, res) => {
+  try {
+    // O ID do usuário a ser deletado vem do token JWT,
+    // garantindo que um usuário só possa deletar a si mesmo.
+    const userId = req.user.id;
+
+    await authService.deleteAccount(userId);
+
+    res.status(200).json({ message: "Conta de usuário deletada com sucesso." });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Erro ao deletar a conta.", error: error.message });
+  }
+};
