@@ -1,8 +1,3 @@
-// O Model é a camada de acesso a dados (Data Access Layer).
-// Com o Prisma, sua única responsabilidade é importar o Prisma Client
-// e expor funções que executam os métodos do Prisma (create, find, update, delete).
-// Ele não contém lógica de negócio, apenas a comunicação com o banco.
-
 import { PrismaClient } from "@prisma/client";
 
 // Instanciar o cliente para ter acesso aos modelos.

@@ -1,11 +1,3 @@
-// O service é responsável pela LÓGICA DE NEGÓCIO da aplicação.
-// Ele é chamado pelo Controller e é o único que deve se comunicar
-// com a camada de dados (Model).
-//
-// Regras de negócio como "a data de validade não pode ser no passado"
-// ou "o nome do produto deve ter no mínimo 3 caracteres" FICAM AQUI.
-
-// Importamos o nosso Model de produto, que será a ponte com o banco de dados.
 import Product from "../models/product.model.js";
 
 /**
@@ -17,8 +9,6 @@ import Product from "../models/product.model.js";
  * @returns {Promise<object>} O novo produto criado.
  */
 export const create = async (productName, expirationDate, userId) => {
-  // Validações
-
   // Garantir que todos os dados necessários foram enviados.
   if (!productName || !expirationDate) {
     // Lança erro que será capturado pelo try..catch do controller.

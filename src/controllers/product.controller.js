@@ -1,12 +1,4 @@
-// O controller é o intermediário entre as rotas (o que o usuário acessa)
-// e os serviços (onde a lógica de negócio acontece).
-// Sua principal responsabilidade é:
-// 1. Receber a requisição (request).
-// 2. Extrair dados da requisição (params, query, body).
-// 3. Chamar a função de serviço apropriada.
-// 4. Enviar a resposta (response) para o cliente com o status HTTP correto.
-
-// Importamos o serviço de produtos, que terá a lógica de negócio e o acesso ao banco.
+// Importa o serviço de produtos, que terá a lógica de negócio e o acesso ao banco.
 import * as productService from "../services/product.service.js";
 
 /**
@@ -14,8 +6,6 @@ import * as productService from "../services/product.service.js";
  * Será chamada pela rota POST /products
  */
 export const createProduct = async (req, res) => {
-  // O 'try...catch' é uma forma de garantir que, se qualquer erro acontecer
-  // dentro do bloco 'try', o 'catch' será executado e o servidor não vai quebrar.
   try {
     // Obter os dados do body da requisição.
     const { productName, expirationDate } = req.body;
